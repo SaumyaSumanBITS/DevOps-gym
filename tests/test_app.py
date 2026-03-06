@@ -1,0 +1,16 @@
+import sys
+import os
+
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+
+from app import app
+
+def test_login_page():
+    client = app.test_client()
+    response = client.get("/")
+    assert response.status_code == 200
+
+def test_dashboard_page():
+    client = app.test_client()
+    response = client.get("/dashboard")
+    assert response.status_code == 200
