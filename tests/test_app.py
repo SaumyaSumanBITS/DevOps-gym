@@ -50,9 +50,28 @@ def test_get_clients(client):
 
 
 def test_get_single_client(client):
-    # assuming ID 1 may exist
     response = client.get("/api/clients/1")
     assert response.status_code in [200, 404]
+
+
+def test_update_client(client):
+    response = client.put("/api/clients/1", json={
+        "name": "Updated",
+        "age": 26,
+        "weight": 75
+    })
+    assert response.status_code == 200
+
+
+def test_delete_client(client):
+    response = client.delete("/api/clients/1")
+    assert response.status_code == 200
+
+
+def test_bmi(client):
+    response = client.get("/api/bmi?height=170&weight=70")
+    assert response.status_code == 200
+    assert "BMI" in response.get_json()
 
 
 def test_health(client):
