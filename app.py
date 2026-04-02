@@ -49,9 +49,17 @@ def dashboard():
 # Home API
 @app.route("/api")
 def api_home():
-    return jsonify({"message": "ACEest API Running"})
+    return jsonify({
+        "message": "ACEest API Running",
+        "endpoints": [
+            "/api/clients",
+            "/api/clients/<id>",
+            "/api/bmi",
+            "/health"
+        ]
+    })
 
-# Add client (POST)
+# ---------- CREATE ----------
 @app.route("/api/clients", methods=["POST"])
 def add_client():
     data = request.json
@@ -69,7 +77,7 @@ def add_client():
 
     return jsonify({"message": "Client added"})
 
-# Get all clients (GET)
+# ---------- READ ALL ----------
 @app.route("/api/clients", methods=["GET"])
 def get_clients():
     conn = sqlite3.connect(DB)
@@ -87,7 +95,7 @@ def get_clients():
 
     return jsonify(clients)
 
-# Get one client (GET)
+# ---------- READ ONE ----------
 @app.route("/api/clients/<int:id>", methods=["GET"])
 def get_client(id):
     conn = sqlite3.connect(DB)
@@ -108,7 +116,49 @@ def get_client(id):
 
     return jsonify({"error": "Client not found"}), 404
 
-# Health check
+# ---------- UPDATE ----------
+@app.route("/api/clients/<int:id>", methods=["PUT"])
+def update_client(id):
+    data = request.json
+
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    cur.execute(
+        "UPDATE clients SET name=?, age=?, weight=? WHERE id=?",
+        (data["name"], data["age"], data["weight"], id)
+    )
+
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Client updated"})
+
+# ---------- DELETE ----------
+@app.route("/api/clients/<int:id>", methods=["DELETE"])
+def delete_client(id):
+    conn = sqlite3.connect(DB)
+    cur = conn.cursor()
+
+    cur.execute("DELETE FROM clients WHERE id=?", (id,))
+    conn.commit()
+    conn.close()
+
+    return jsonify({"message": "Client deleted"})
+
+# ---------- BMI ----------
+@app.route("/api/bmi")
+def bmi():
+    try:
+        height = float(request.args.get("height"))
+        weight = float(request.args.get("weight"))
+        h = height / 100
+        bmi_value = weight / (h * h)
+        return jsonify({"BMI": round(bmi_value, 2)})
+    except:
+        return jsonify({"error": "Invalid input"}), 400
+
+# ---------- HEALTH ----------
 @app.route("/health")
 def health():
     return jsonify({"status": "OK"})
